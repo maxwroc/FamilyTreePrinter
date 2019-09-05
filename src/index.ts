@@ -20,6 +20,11 @@ module FamilyTreePrinter {
         { id: 9, name: "I", parent: 2 },
     ];
 
+    let spouses = [
+        {id: 1, name: "SA_1", partner: 1, since: "2010-09-20", children: [2, 3], till: "2015-05-18" }, // ex
+        {id: 2, name: "SA_2", partner: 1, since: "2010-09-20", children: [1] } // current
+    ];
+
     function processDataAndGetRootNode(treeData: INodeData[]): Node {
         let root: Node = null;
         // helper collectiont to store
