@@ -1,20 +1,20 @@
 "use strict";
 /**
- * SVGTree - index
+ * FamilyTreePrinter - index
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-var SVGTree;
+var FamilyTreePrinter;
 /**
- * SVGTree - index
+ * FamilyTreePrinter - index
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-(function (SVGTree) {
+(function (FamilyTreePrinter) {
     // tree data
     let treeData = [
         { id: 1, name: "A" },
@@ -33,7 +33,7 @@ var SVGTree;
         let childrenToAddLater = {};
         // create basic node obj
         treeData.reduce((idToNodeMap, nodeData) => {
-            idToNodeMap[nodeData.id] = new SVGTree.Node(nodeData.name);
+            idToNodeMap[nodeData.id] = new FamilyTreePrinter.Node(nodeData.name);
             // check if there were any children nodes initialized earlier
             if (childrenToAddLater[nodeData.id]) {
                 childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
@@ -60,25 +60,25 @@ var SVGTree;
         return root;
     }
     window.addEventListener("load", () => {
-        SVGTree.Canvas.drawTree(processDataAndGetRootNode(treeData));
+        FamilyTreePrinter.Canvas.drawTree(processDataAndGetRootNode(treeData));
     });
-})(SVGTree || (SVGTree = {}));
+})(FamilyTreePrinter || (FamilyTreePrinter = {}));
 /**
- * SVGTree - canvas
+ * FamilyTreePrinter - canvas
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-var SVGTree;
+var FamilyTreePrinter;
 /**
- * SVGTree - canvas
+ * FamilyTreePrinter - canvas
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-(function (SVGTree) {
+(function (FamilyTreePrinter) {
     var Canvas;
     (function (Canvas) {
         /**
@@ -135,24 +135,24 @@ var SVGTree;
             getContainer());
         }
         Canvas.drawTree = drawTree;
-    })(Canvas = SVGTree.Canvas || (SVGTree.Canvas = {}));
-})(SVGTree || (SVGTree = {}));
+    })(Canvas = FamilyTreePrinter.Canvas || (FamilyTreePrinter.Canvas = {}));
+})(FamilyTreePrinter || (FamilyTreePrinter = {}));
 /**
- * SVGTree - node
+ * FamilyTreePrinter - node
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-var SVGTree;
+var FamilyTreePrinter;
 /**
- * SVGTree - node
+ * FamilyTreePrinter - node
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-(function (SVGTree) {
+(function (FamilyTreePrinter) {
     /**
      * Class representing single node in the tree
      */
@@ -291,11 +291,11 @@ var SVGTree;
             let path;
             if (this.children.length == 1) {
                 // if there is only one child we just have to connecti it with streight line to the parent right above
-                path = new SVGTree.Path(this.firstChild().getMiddleTop()).lineTo(0, -1 * this.props.space.generation);
+                path = new FamilyTreePrinter.Path(this.firstChild().getMiddleTop()).lineTo(0, -1 * this.props.space.generation);
             }
             else {
                 // connecting first child with the last one
-                path = new SVGTree.Path(this.firstChild().getMiddleTop())
+                path = new FamilyTreePrinter.Path(this.firstChild().getMiddleTop())
                     .arcTo(halfGenSpace, -1 * halfGenSpace)
                     .lineTo(this.lastChild().getMiddleTop().x - halfGenSpace, null, false)
                     .arcTo(this.lastChild().getMiddleTop());
@@ -317,24 +317,24 @@ var SVGTree;
                 .attr("fill", "none");
         }
     }
-    SVGTree.Node = Node;
-})(SVGTree || (SVGTree = {}));
+    FamilyTreePrinter.Node = Node;
+})(FamilyTreePrinter || (FamilyTreePrinter = {}));
 /**
- * SVGTree - path
+ * FamilyTreePrinter - path
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-var SVGTree;
+var FamilyTreePrinter;
 /**
- * SVGTree - path
+ * FamilyTreePrinter - path
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-(function (SVGTree) {
+(function (FamilyTreePrinter) {
     /**
      * Class for generating paths
      */
@@ -435,5 +435,5 @@ var SVGTree;
             }
         }
     }
-    SVGTree.Path = Path;
-})(SVGTree || (SVGTree = {}));
+    FamilyTreePrinter.Path = Path;
+})(FamilyTreePrinter || (FamilyTreePrinter = {}));

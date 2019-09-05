@@ -1,11 +1,11 @@
 /**
- * SVGTree - canvas
+ * FamilyTreePrinter - canvas
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-module SVGTree.Canvas {
+module FamilyTreePrinter.Canvas {
     /**
      * Creates SVG and returns container for drawing the tree
      */

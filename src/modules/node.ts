@@ -1,11 +1,11 @@
 /**
- * SVGTree - node
+ * FamilyTreePrinter - node
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-module SVGTree {
+module FamilyTreePrinter {
     /**
      * Class representing single node in the tree
      */

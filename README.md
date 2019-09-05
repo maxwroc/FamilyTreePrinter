@@ -43,4 +43,4 @@ function drawSubTree(node: Node, x: number, depth: number, container: d3.Selecti
 ```
 
 ## Result
-![Screenshot](https://github.com/maxwroc/SVGTree/blob/master/screen.png)
+![Screenshot](https://github.com/maxwroc/FamilyTreePrinter/blob/master/screen.png)

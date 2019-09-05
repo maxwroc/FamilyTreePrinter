@@ -19,9 +19,9 @@
   "author": "Max Chodorowski",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/maxwroc/SVGTree/issues"
+    "url": "https://github.com/maxwroc/FamilyTreePrinter/issues"
   },
-  "homepage": "https://maxwroc.github.io/SVGTree/",
+  "homepage": "https://maxwroc.github.io/FamilyTreePrinter/",
   "devDependencies": {
     "@types/d3": "^3.5.42",
     "@types/d3-selection-multi": "^1.0.7",

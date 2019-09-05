@@ -1,11 +1,11 @@
 /**
- * SVGTree - index
+ * FamilyTreePrinter - index
  *
  * @copyright Copyright 2019, Max Chodorowski
  * @license   MIT (https://opensource.org/licenses/MIT)
- * @link      https://maxwroc.github.io/SVGTree/
+ * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
-module SVGTree {
+module FamilyTreePrinter {
 
     // tree data
     let treeData: INodeData[] = [
