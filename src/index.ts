@@ -27,44 +27,49 @@ module FamilyTreePrinter {
         { id: 4, name: "SB_1", sex: "m", partner: 2, since: "2015-05-20", children: [8, 9] } // current
     ];
 
-    function processDataAndGetRootNode(treeData: IPersonData[]): Node {
-        let root: Node = null;
-        // helper collectiont to store
-        let childrenToAddLater: IMap<Node[]> = {};
+    class DataProcessor {
 
-        // create basic node obj
-        treeData.reduce((idToNodeMap, nodeData) => {
-            idToNodeMap[nodeData.id] = new PersonNode(nodeData);
+        public rootNode: PersonNode;
 
-            // check if there were any children nodes initialized earlier
-            if (childrenToAddLater[nodeData.id]) {
-                childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
-                delete childrenToAddLater[nodeData.id];
-            }
+        private idToPersonMap: IMap<PersonNode>;
 
-            // if there is no parent it is the root node
-            if (!nodeData.parent) {
-                root = idToNodeMap[nodeData.id];
-            }
-            else {
-                // check if parent was initialized already
-                if (idToNodeMap[nodeData.parent]) {
-                    // add child to the parent
-                    idToNodeMap[nodeData.parent].children.push(idToNodeMap[nodeData.id]);
+        process(nodes: IPersonData[], spouses: ISpouseData[]) {
+            let childrenToAddLater: IMap<PersonNode[]> = {};
+
+            // create basic node obj
+            this.idToPersonMap = nodes.reduce((idToNodeMap, nodeData) => {
+                idToNodeMap[nodeData.id] = new PersonNode(nodeData);
+
+                // check if there were any children nodes initialized earlier
+                if (childrenToAddLater[nodeData.id]) {
+                    childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
+                    delete childrenToAddLater[nodeData.id];
+                }
+
+                // if there is no parent it is the root node
+                if (!nodeData.parent) {
+                    this.rootNode = idToNodeMap[nodeData.id];
                 }
                 else {
-                    // since parent was not initialized yet we store new node in helper collection and we will add it later
-                    childrenToAddLater[nodeData.parent] = childrenToAddLater[nodeData.parent] || [];
-                    childrenToAddLater[nodeData.parent].push(idToNodeMap[nodeData.id]);
+                    // check if parent was initialized already
+                    if (idToNodeMap[nodeData.parent]) {
+                        // add child to the parent
+                        idToNodeMap[nodeData.parent].children.push(idToNodeMap[nodeData.id]);
+                    }
+                    else {
+                        // since parent was not initialized yet we store new node in helper collection and we will add it later
+                        childrenToAddLater[nodeData.parent] = childrenToAddLater[nodeData.parent] || [];
+                        childrenToAddLater[nodeData.parent].push(idToNodeMap[nodeData.id]);
+                    }
                 }
-            }
-            return idToNodeMap;
-        }, {} as IMap<Node>);
+                return idToNodeMap;
+            }, {} as IMap<PersonNode>);
 
-        return root;
+            return this;
+        }
     }
 
     window.addEventListener("load", () => {
-        Canvas.drawTree(processDataAndGetRootNode(treeData));
+        Canvas.drawTree(new DataProcessor().process(treeData, spouses).rootNode);
     });
 }
