@@ -27,48 +27,6 @@ module FamilyTreePrinter {
         { id: 4, name: "SB_1", sex: "m", partner: 2, since: "2015-05-20", children: [8, 9] } // current
     ];
 
-    class DataProcessor {
-
-        public rootNode: PersonNode;
-
-        private idToPersonMap: IMap<PersonNode>;
-
-        process(nodes: IPersonData[], spouses: ISpouseData[]) {
-            let childrenToAddLater: IMap<PersonNode[]> = {};
-
-            // create basic node obj
-            this.idToPersonMap = nodes.reduce((idToNodeMap, nodeData) => {
-                idToNodeMap[nodeData.id] = new PersonNode(nodeData);
-
-                // check if there were any children nodes initialized earlier
-                if (childrenToAddLater[nodeData.id]) {
-                    childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
-                    delete childrenToAddLater[nodeData.id];
-                }
-
-                // if there is no parent it is the root node
-                if (!nodeData.parent) {
-                    this.rootNode = idToNodeMap[nodeData.id];
-                }
-                else {
-                    // check if parent was initialized already
-                    if (idToNodeMap[nodeData.parent]) {
-                        // add child to the parent
-                        idToNodeMap[nodeData.parent].children.push(idToNodeMap[nodeData.id]);
-                    }
-                    else {
-                        // since parent was not initialized yet we store new node in helper collection and we will add it later
-                        childrenToAddLater[nodeData.parent] = childrenToAddLater[nodeData.parent] || [];
-                        childrenToAddLater[nodeData.parent].push(idToNodeMap[nodeData.id]);
-                    }
-                }
-                return idToNodeMap;
-            }, {} as IMap<PersonNode>);
-
-            return this;
-        }
-    }
-
     window.addEventListener("load", () => {
         Canvas.drawTree(new DataProcessor().process(treeData, spouses).rootNode);
     });
