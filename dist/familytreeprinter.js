@@ -17,15 +17,21 @@ var FamilyTreePrinter;
 (function (FamilyTreePrinter) {
     // tree data
     let treeData = [
-        { id: 1, name: "A" },
-        { id: 2, name: "B", parent: 1 },
-        { id: 3, name: "C", parent: 1 },
-        { id: 4, name: "D", parent: 1 },
-        { id: 5, name: "E", parent: 4 },
-        { id: 6, name: "F", parent: 4 },
-        { id: 7, name: "G", parent: 4 },
-        { id: 8, name: "H", parent: 2 },
-        { id: 9, name: "I", parent: 2 },
+        { id: 1, name: "A", sex: "m" },
+        { id: 2, name: "B", sex: "f", parent: 1 },
+        { id: 3, name: "C", sex: "f", parent: 1 },
+        { id: 4, name: "D", sex: "m", parent: 1 },
+        { id: 5, name: "E", sex: "m", parent: 4 },
+        { id: 6, name: "F", sex: "m", parent: 4 },
+        { id: 7, name: "G", sex: "f", parent: 4 },
+        { id: 8, name: "H", sex: "f", parent: 2 },
+        { id: 9, name: "I", sex: "f", parent: 2 },
+    ];
+    let spouses = [
+        { id: 1, name: "SA_2", sex: "f", partner: 1, since: "2015-10-01", children: [1] },
+        { id: 2, name: "SA_1", sex: "f", partner: 1, since: "2010-09-20", children: [2, 3], till: "2015-05-18" },
+        { id: 3, name: "SD_1", sex: "f", partner: 4, since: "2015-05-20", children: [5, 6, 7] },
+        { id: 4, name: "SB_1", sex: "m", partner: 2, since: "2015-05-20", children: [8, 9] } // current
     ];
     function processDataAndGetRootNode(treeData) {
         let root = null;
@@ -33,7 +39,7 @@ var FamilyTreePrinter;
         let childrenToAddLater = {};
         // create basic node obj
         treeData.reduce((idToNodeMap, nodeData) => {
-            idToNodeMap[nodeData.id] = new FamilyTreePrinter.Node(nodeData.name);
+            idToNodeMap[nodeData.id] = new FamilyTreePrinter.PersonNode(nodeData);
             // check if there were any children nodes initialized earlier
             if (childrenToAddLater[nodeData.id]) {
                 childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
@@ -171,6 +177,16 @@ var FamilyTreePrinter;
                 space: {
                     sibling: 10,
                     generation: 20
+                },
+                color: {
+                    "f": {
+                        background: "rgb(245, 184, 219)",
+                        stroke: "rgb(214, 161, 191)"
+                    },
+                    "m": {
+                        background: "rgb(159, 213, 235)",
+                        stroke: "rgb(142, 191, 211)"
+                    }
                 }
             };
             // current node final/calculated coordinates
@@ -238,11 +254,11 @@ var FamilyTreePrinter;
                 .append("g")
                 .attr("transform", `translate(${this.coords.x},${this.coords.y})`);
             boxGroup.append("rect")
-                .attrs({ x: 0, y: 0, width: this.props.width, height: this.props.height, fill: "rgb(159, 213, 235)" })
+                .attrs({ x: 0, y: 0, width: this.props.width, height: this.props.height, fill: this.getBgColor() })
                 .attr("rx", this.props.rounded)
                 .attr("ry", this.props.rounded)
                 .attr("stroke-width", 1.5)
-                .attr("stroke", "rgb(142, 191, 211)");
+                .attr("stroke", this.getStrokeColor());
             boxGroup.append("text")
                 .attrs({
                 x: Math.floor(this.props.width / 2),
@@ -318,6 +334,28 @@ var FamilyTreePrinter;
         }
     }
     FamilyTreePrinter.Node = Node;
+    class ExtendedNode extends Node {
+        constructor(data) {
+            super(data.name);
+            this.data = data;
+        }
+        getBgColor() {
+            return this.props.color[this.data.sex].background;
+        }
+        getStrokeColor() {
+            return this.props.color[this.data.sex].stroke;
+        }
+    }
+    class PersonNode extends ExtendedNode {
+        constructor() {
+            super(...arguments);
+            this.spouses = [];
+        }
+    }
+    FamilyTreePrinter.PersonNode = PersonNode;
+    class SpouseNode extends ExtendedNode {
+    }
+    FamilyTreePrinter.SpouseNode = SpouseNode;
 })(FamilyTreePrinter || (FamilyTreePrinter = {}));
 /**
  * FamilyTreePrinter - path

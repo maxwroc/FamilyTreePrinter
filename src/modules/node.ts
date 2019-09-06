@@ -9,15 +9,25 @@ module FamilyTreePrinter {
     /**
      * Class representing single node in the tree
      */
-    export class Node {
+    export abstract class Node {
         // static appearance properties of node
-        private props = {
+        protected props = {
             width: 40,
             height: 40,
             rounded: 10,
             space: {
                 sibling: 10,
                 generation: 20
+            },
+            color: {
+                "f": {
+                    background: "rgb(245, 184, 219)",
+                    stroke: "rgb(214, 161, 191)"
+                },
+                "m": {
+                    background: "rgb(159, 213, 235)",
+                    stroke: "rgb(142, 191, 211)"
+                }
             }
         }
 
@@ -106,11 +116,11 @@ module FamilyTreePrinter {
                 .attr("transform", `translate(${this.coords.x},${this.coords.y})`);
 
             boxGroup.append("rect")
-                .attrs({ x: 0, y: 0, width: this.props.width, height: this.props.height, fill: "rgb(159, 213, 235)" })
+                .attrs({ x: 0, y: 0, width: this.props.width, height: this.props.height, fill: this.getBgColor() })
                 .attr("rx", this.props.rounded)
                 .attr("ry", this.props.rounded)
                 .attr("stroke-width", 1.5)
-                .attr("stroke", "rgb(142, 191, 211)");
+                .attr("stroke", this.getStrokeColor());
 
             boxGroup.append("text")
                 .attrs({
@@ -149,6 +159,10 @@ module FamilyTreePrinter {
                 isRelative: false
             }
         }
+
+        protected abstract getBgColor(): string;
+
+        protected abstract getStrokeColor(): string;
 
         /**
          * Draws connection lines between current node and its children
@@ -194,5 +208,27 @@ module FamilyTreePrinter {
                 .attr("stroke-opacity", 0.3)
                 .attr("fill", "none");
         }
+    }
+
+    class ExtendedNode extends Node {
+        constructor(protected data: IPersonData) {
+            super(data.name);
+        }
+
+        protected getBgColor() {
+            return this.props.color[this.data.sex].background;
+        }
+
+        protected getStrokeColor() {
+            return this.props.color[this.data.sex].stroke;
+        }
+    }
+
+    export class PersonNode extends ExtendedNode {
+
+        public spouses: SpouseNode[] = [];
+    }
+
+    export class SpouseNode extends ExtendedNode {
     }
 }

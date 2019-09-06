@@ -9,8 +9,19 @@ interface ICoords {
     isRelative?: boolean
 }
 
-interface INodeData {
+interface IPersonData {
     id: number,
     name: string,
+    sex: "f" | "m",
     parent?: number
+}
+
+interface ISpouseData {
+    id: number,
+    name: string,
+    sex: "f" | "m",
+    partner: number,
+    children?: number[],
+    since: string,
+    till?: string
 }
