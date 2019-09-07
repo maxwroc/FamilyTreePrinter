@@ -34,15 +34,17 @@ module FamilyTreePrinter {
         // current node final/calculated coordinates
         private coords: ICoords = { x: 0, y: 0 };
 
+        public id: number;
+
         // children of current node
         public children: Node[] = [];
 
         /**
          * Initializes class
-         * @param name - text to print in the node
+         * @param data - person data
          */
-        constructor(private name: string) {
-
+        constructor(protected data: IPersonData) {
+            this.id = data.id;
         }
 
         /**
@@ -132,7 +134,7 @@ module FamilyTreePrinter {
                     style: "font-size: 24px; font-weight: bold; font-family: SANS-SERIF",
                     fill: "rgb(77, 148, 177)"
                 })
-                .text(this.name);
+                .text(this.data.name);
 
             // draw connection line with children - since all of them should be rendered at this point
             this.connectChildren(container);
@@ -211,9 +213,6 @@ module FamilyTreePrinter {
     }
 
     class ExtendedNode extends Node {
-        constructor(protected data: IPersonData) {
-            super(data.name);
-        }
 
         protected getBgColor() {
             return this.props.color[this.data.sex].background;
@@ -221,6 +220,10 @@ module FamilyTreePrinter {
 
         protected getStrokeColor() {
             return this.props.color[this.data.sex].stroke;
+        }
+
+        protected getChildren(spouse: SpouseNode) {
+            return this.children.filter(child => spouse.children.some(ch => ch.id == child.id))
         }
     }
 

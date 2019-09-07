@@ -133,10 +133,10 @@ var FamilyTreePrinter;
     class Node {
         /**
          * Initializes class
-         * @param name - text to print in the node
+         * @param data - person data
          */
-        constructor(name) {
-            this.name = name;
+        constructor(data) {
+            this.data = data;
             // static appearance properties of node
             this.props = {
                 width: 40,
@@ -161,6 +161,7 @@ var FamilyTreePrinter;
             this.coords = { x: 0, y: 0 };
             // children of current node
             this.children = [];
+            this.id = data.id;
         }
         /**
          * Gets first child (throws when no children)
@@ -237,7 +238,7 @@ var FamilyTreePrinter;
                 style: "font-size: 24px; font-weight: bold; font-family: SANS-SERIF",
                 fill: "rgb(77, 148, 177)"
             })
-                .text(this.name);
+                .text(this.data.name);
             // draw connection line with children - since all of them should be rendered at this point
             this.connectChildren(container);
         }
@@ -303,15 +304,14 @@ var FamilyTreePrinter;
     }
     FamilyTreePrinter.Node = Node;
     class ExtendedNode extends Node {
-        constructor(data) {
-            super(data.name);
-            this.data = data;
-        }
         getBgColor() {
             return this.props.color[this.data.sex].background;
         }
         getStrokeColor() {
             return this.props.color[this.data.sex].stroke;
+        }
+        getChildren(spouse) {
+            return this.children.filter(child => spouse.children.some(ch => ch.id == child.id));
         }
     }
     class PersonNode extends ExtendedNode {
@@ -447,9 +447,20 @@ var FamilyTreePrinter;
 (function (FamilyTreePrinter) {
     class DataProcessor {
         process(nodes, spouses) {
+            // create main tree nodes (PersonNodes)
+            this.idToPersonMap = nodes.reduce((idToNodeMap, nodeData) => this.processPerson(idToNodeMap, nodeData), {});
+            spouses.forEach(spouseData => {
+                let spouse = new FamilyTreePrinter.SpouseNode(spouseData);
+                // add children
+                spouseData.children && spouseData.children.forEach(childId => spouse.children.push(this.idToPersonMap[childId]));
+                // add spouse to person node
+                this.idToPersonMap[spouseData.partner].spouses.push(new FamilyTreePrinter.SpouseNode(spouseData));
+            });
+            return this;
+        }
+        processPerson(idToNodeMap, nodeData) {
             let childrenToAddLater = {};
-            // create basic node obj
-            this.idToPersonMap = nodes.reduce((idToNodeMap, nodeData) => {
+            return (() => {
                 idToNodeMap[nodeData.id] = new FamilyTreePrinter.PersonNode(nodeData);
                 // check if there were any children nodes initialized earlier
                 if (childrenToAddLater[nodeData.id]) {
@@ -473,8 +484,7 @@ var FamilyTreePrinter;
                     }
                 }
                 return idToNodeMap;
-            }, {});
-            return this;
+            })();
         }
     }
     FamilyTreePrinter.DataProcessor = DataProcessor;

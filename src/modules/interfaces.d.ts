@@ -16,10 +16,7 @@ interface IPersonData {
     parent?: number
 }
 
-interface ISpouseData {
-    id: number,
-    name: string,
-    sex: "f" | "m",
+interface ISpouseData extends IPersonData {
     partner: number,
     children?: number[],
     since: string,

@@ -7,10 +7,26 @@ module FamilyTreePrinter {
         private idToPersonMap: IMap<PersonNode>;
 
         process(nodes: IPersonData[], spouses: ISpouseData[]) {
-            let childrenToAddLater: IMap<PersonNode[]> = {};
 
-            // create basic node obj
-            this.idToPersonMap = nodes.reduce((idToNodeMap, nodeData) => {
+            // create main tree nodes (PersonNodes)
+            this.idToPersonMap = nodes.reduce(
+                (idToNodeMap, nodeData) => this.processPerson(idToNodeMap, nodeData),
+                {} as IMap<PersonNode>);
+
+            spouses.forEach(spouseData => {
+                let spouse = new SpouseNode(spouseData);
+                // add children
+                spouseData.children && spouseData.children.forEach(childId => spouse.children.push(this.idToPersonMap[childId]));
+                // add spouse to person node
+                this.idToPersonMap[spouseData.partner].spouses.push(new SpouseNode(spouseData))
+            });
+
+            return this;
+        }
+
+        private processPerson(idToNodeMap: IMap<PersonNode>, nodeData: IPersonData): IMap<PersonNode> {
+            let childrenToAddLater: IMap<PersonNode[]> = {};
+            return (() => {
                 idToNodeMap[nodeData.id] = new PersonNode(nodeData);
 
                 // check if there were any children nodes initialized earlier
@@ -35,10 +51,9 @@ module FamilyTreePrinter {
                         childrenToAddLater[nodeData.parent].push(idToNodeMap[nodeData.id]);
                     }
                 }
-                return idToNodeMap;
-            }, {} as IMap<PersonNode>);
 
-            return this;
+                return idToNodeMap;
+            })();
         }
     }
 }
