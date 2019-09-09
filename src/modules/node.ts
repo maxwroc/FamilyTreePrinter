@@ -32,7 +32,7 @@ module FamilyTreePrinter {
         }
 
         // current node final/calculated coordinates
-        private coords: ICoords = { x: 0, y: 0 };
+        public coords: ICoords = { x: 0, y: 0 };
 
         public id: number;
 
@@ -72,7 +72,7 @@ module FamilyTreePrinter {
         /**
          * Returns minimal x value where next node on the same level can be drawn
          */
-        maxContainerX() {
+        maxContainerX(): number {
             // set default to end of the single box
             let maxx = this.coords.x + this.props.width;
             if (this.children.length > 1) {
@@ -161,7 +161,7 @@ module FamilyTreePrinter {
          * @param x - default x value (won't be used when more than 1 child)
          * @param depth - "level" number starting from root
          */
-        private setCoords(x: number, depth: number) {
+        protected setCoords(x: number, depth: number) {
             if (this.children.length < 2) {
                 this.coords.x = x;
             }
@@ -176,7 +176,7 @@ module FamilyTreePrinter {
          * Draws connection lines between current node and its children
          * @param container - container where path should be added
          */
-        private connectChildren(container: d3.Selection<"g">) {
+        protected connectChildren(container: d3.Selection<"g">) {
             // if there is no children quit
             if (!this.children.length) {
                 return;
@@ -227,17 +227,148 @@ module FamilyTreePrinter {
         protected getStrokeColor() {
             return this.props.color[this.data.sex].stroke;
         }
-
-        protected getChildren(spouse: SpouseNode) {
-            return this.children.filter(child => spouse.children.some(ch => ch.id == child.id))
-        }
     }
 
     export class PersonNode extends ExtendedNode {
 
         public spouses: SpouseNode[] = [];
+
+        public parent: PersonNode;
+
+        getSpouses(): SpouseNode[] {
+            // local cache to not sort twice
+            let sortedSpouses: SpouseNode[];
+            return (() => sortedSpouses ? sortedSpouses : sortedSpouses = this.spouses.sort((a, b) => a.compareWith(b)))();
+        }
+
+        getChildren(spouse?: SpouseNode): PersonNode[] {
+            if (spouse) {
+                return this.children.filter(child => spouse.isMyChild(child)) as PersonNode[];
+            }
+
+            // return kids who doesn't have second parent
+            return this.children.filter(child =>
+                !this.spouses.some(spouse => spouse.isMyChild(child))
+            ) as PersonNode[];
+        }
+
+        /**
+         * Sets final node coordinations (override)
+         *
+         * This function must not be called before all children were drawn
+         *
+         * @param x - default x value (won't be used when more than 1 child)
+         * @param depth - "level" number starting from root
+         */
+        protected setCoords(x: number, depth: number) {
+
+            super.setCoords(x, depth);
+
+            if (this.spouses.length == 0) {
+                // print me in the middle of children
+                return;
+            }
+
+            const secondParent = this.getSecondParent();
+
+            if (this.children.length < 2) {
+                this.coords.x = x;
+            }
+            else {
+                this.coords.x = Math.floor((this.firstChild().coords.x + this.lastChild().coords.x) / 2)
+            }
+
+            this.coords.y = depth * (this.props.height + this.props.space.generation);
+        }
+
+        protected getLastSpouse() {
+            return this.spouses[this.spouses.length - 1];
+        }
+
+        private getSecondParent(): SpouseNode  {
+            if (!this.parent) {
+                return null;
+            }
+
+            return this.parent.spouses.find(spouse => spouse.isMyChild(this));
+        }
+
+        public maxContainerX(): number {
+            if (this.spouses.length > 0 && this.getLastSpouse().children.length < 2) {
+                // take spouse border
+                return this.getLastSpouse().maxContainerX();
+            }
+
+            return super.maxContainerX();
+        }
     }
 
     export class SpouseNode extends ExtendedNode {
+
+        protected data: ISpouseData;
+
+        public partner: PersonNode;
+
+        constructor(data: ISpouseData) {
+            super(data);
+        }
+
+        /**
+         * Logic comparing spouses for sorting
+         */
+        compareWith(b: SpouseNode): number {
+            // logic deciding which spouse is the current one (last one)
+
+            if (this.data.till) {
+                // compare relationship end dates if both existe
+                // if the other one doesn't exist it means it should be after current node
+                return b.data.till ? this.data.till.localeCompare(b.data.till) : -1;
+            }
+
+            // if current one doesn't have relationship end date but the other one does
+            // it means the other one should be before current node
+            if (b.data.till) {
+                return 1;
+            }
+
+            // dummy assumption that last entered partner is the current one
+            // the alternative would be to make them equal (0)
+            return this.id - b.id;
+        }
+
+        /**
+         * Checks if given child belongs to this spouse
+         * @param child - Child to test
+         */
+        isMyChild(child: Node) {
+            return this.data.children.indexOf(child.id) != -1;
+        }
+
+        /**
+         * Checks if given person is current parter or ex
+         * @param person
+         */
+        isLastPartner(person: PersonNode) {
+            let spouses = person.getSpouses();
+            // current one should be the last on the list
+            return spouses[spouses.length - 1].id == this.id;
+        }
+
+        protected setCoords(x: number, depth: number) {
+            super.setCoords(x, depth);
+
+            if (this.isLastPartner(this.partner)) {
+                this.coords.x = this.partner.coords.x + this.props.width + this.props.space.sibling;
+            }
+            else {
+                // print on the left side of partner node
+            }
+        }
+
+        protected connectChildren(container: d3.Selection<"g">) {
+            // TODO
+
+            // if not current parter then connect directly underneath
+        }
     }
 }

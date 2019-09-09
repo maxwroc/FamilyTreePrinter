@@ -6,6 +6,9 @@
  * @link      https://maxwroc.github.io/FamilyTreePrinter/
  */
 module FamilyTreePrinter.Canvas {
+
+    let container: d3.Selection<"g">;
+
     /**
      * Creates SVG and returns container for drawing the tree
      */
@@ -52,19 +55,50 @@ module FamilyTreePrinter.Canvas {
      *      ┍--|--┑      ┍--+--┑
      *      2  3  4      8     9
      */
-    function drawSubTree(node: Node, x: number, depth: number, container: d3.Selection<"g">): number {
-        for (const child of node.children) {
-            x = drawSubTree(child, x, depth + 1, container);
-        };
+    function drawSubTree(node: Node, x: number, depth: number): number {
+        const person = node as PersonNode;
+        const spouses = person.getSpouses();
 
-        return node.print(container, x, depth);
+        let printMainNode = true;
+
+        // draw common children for all spouses
+        spouses.forEach((spouse, index) => {
+            person.getChildren(spouse).forEach(child => {
+                x = drawSubTree(child, x, depth + 1);
+            });
+
+            // we want to print person node first
+            if (index == spouses.length - 1) {
+                x = node.print(container, x, depth);
+                printMainNode = false;
+            }
+
+            // set x based on spouse children container max x
+            x = spouse.print(container, x, depth);
+        });
+
+        // draw kids without second parent
+        person.getChildren().forEach(child => {
+            x = drawSubTree(child, x, depth + 1);
+        });
+
+        /*
+        for (const child of node.children) {
+            x = drawSubTree(child, x, depth + 1);
+        };
+        */
+
+        if (printMainNode) {
+            x = node.print(container, x, depth);
+        }
+
+        return x;
     }
 
     export function drawTree(root: Node) {
-        drawSubTree(
-            root,
-            80, // x - starting point od the tree
-            1,  // starting depth
-            getContainer());
+
+        container = getContainer();
+
+        drawSubTree(root, 80, 1);  // starting depth
     }
 }

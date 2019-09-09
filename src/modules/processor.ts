@@ -17,8 +17,11 @@ module FamilyTreePrinter {
                 let spouse = new SpouseNode(spouseData);
                 // add children
                 spouseData.children && spouseData.children.forEach(childId => spouse.children.push(this.idToPersonMap[childId]));
+
                 // add spouse to person node
-                this.idToPersonMap[spouseData.partner].spouses.push(new SpouseNode(spouseData))
+                this.idToPersonMap[spouseData.partner].spouses.push(spouse);
+                // add person to spouse node
+                spouse.partner = this.idToPersonMap[spouseData.partner];
             });
 
             return this;
@@ -31,7 +34,11 @@ module FamilyTreePrinter {
 
                 // check if there were any children nodes initialized earlier
                 if (childrenToAddLater[nodeData.id]) {
-                    childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
+                    childrenToAddLater[nodeData.id].forEach(child => {
+                        idToNodeMap[nodeData.id].children.push(child);
+                        // add parent to child
+                        child.parent = idToNodeMap[nodeData.id];
+                    });
                     delete childrenToAddLater[nodeData.id];
                 }
 
@@ -44,6 +51,8 @@ module FamilyTreePrinter {
                     if (idToNodeMap[nodeData.parent]) {
                         // add child to the parent
                         idToNodeMap[nodeData.parent].children.push(idToNodeMap[nodeData.id]);
+                        // add parent to child
+                        idToNodeMap[nodeData.id].parent = idToNodeMap[nodeData.parent];
                     }
                     else {
                         // since parent was not initialized yet we store new node in helper collection and we will add it later

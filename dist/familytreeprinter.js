@@ -26,12 +26,16 @@ var FamilyTreePrinter;
         { id: 7, name: "G", sex: "f", parent: 4 },
         { id: 8, name: "H", sex: "f", parent: 2 },
         { id: 9, name: "I", sex: "f", parent: 2 },
+        { id: 10, name: "Ca", sex: "m", parent: 3 },
     ];
     let spouses = [
         { id: 1, name: "SA_2", sex: "f", partner: 1, since: "2015-10-01", children: [1] },
         { id: 2, name: "SA_1", sex: "f", partner: 1, since: "2010-09-20", children: [2, 3], till: "2015-05-18" },
         { id: 3, name: "SD_1", sex: "f", partner: 4, since: "2015-05-20", children: [5, 6, 7] },
         { id: 4, name: "SB_1", sex: "m", partner: 2, since: "2015-05-20", children: [8, 9] } // current
+    ];
+    spouses = [
+        { id: 3, name: "SD_1", sex: "f", partner: 4, since: "2015-05-20", children: [5, 6, 7] },
     ];
     window.addEventListener("load", () => {
         FamilyTreePrinter.Canvas.drawTree(new FamilyTreePrinter.DataProcessor().process(treeData, spouses).rootNode);
@@ -55,6 +59,7 @@ var FamilyTreePrinter;
 (function (FamilyTreePrinter) {
     var Canvas;
     (function (Canvas) {
+        let container;
         /**
          * Creates SVG and returns container for drawing the tree
          */
@@ -95,17 +100,40 @@ var FamilyTreePrinter;
          *      ┍--|--┑      ┍--+--┑
          *      2  3  4      8     9
          */
-        function drawSubTree(node, x, depth, container) {
+        function drawSubTree(node, x, depth) {
+            const person = node;
+            const spouses = person.getSpouses();
+            let printMainNode = true;
+            // draw common children for all spouses
+            spouses.forEach((spouse, index) => {
+                person.getChildren(spouse).forEach(child => {
+                    x = drawSubTree(child, x, depth + 1);
+                });
+                // we want to print person node first
+                if (index == spouses.length - 1) {
+                    x = node.print(container, x, depth);
+                    printMainNode = false;
+                }
+                // set x based on spouse children container max x
+                x = spouse.print(container, x, depth);
+            });
+            // draw kids without second parent
+            person.getChildren().forEach(child => {
+                x = drawSubTree(child, x, depth + 1);
+            });
+            /*
             for (const child of node.children) {
-                x = drawSubTree(child, x, depth + 1, container);
+                x = drawSubTree(child, x, depth + 1);
+            };
+            */
+            if (printMainNode) {
+                x = node.print(container, x, depth);
             }
-            ;
-            return node.print(container, x, depth);
+            return x;
         }
         function drawTree(root) {
-            drawSubTree(root, 80, // x - starting point od the tree
-            1, // starting depth
-            getContainer());
+            container = getContainer();
+            drawSubTree(root, 80, 1); // starting depth
         }
         Canvas.drawTree = drawTree;
     })(Canvas = FamilyTreePrinter.Canvas || (FamilyTreePrinter.Canvas = {}));
@@ -313,18 +341,117 @@ var FamilyTreePrinter;
         getStrokeColor() {
             return this.props.color[this.data.sex].stroke;
         }
-        getChildren(spouse) {
-            return this.children.filter(child => spouse.children.some(ch => ch.id == child.id));
-        }
     }
     class PersonNode extends ExtendedNode {
         constructor() {
             super(...arguments);
             this.spouses = [];
         }
+        getSpouses() {
+            // local cache to not sort twice
+            let sortedSpouses;
+            return (() => sortedSpouses ? sortedSpouses : sortedSpouses = this.spouses.sort((a, b) => a.compareWith(b)))();
+        }
+        getChildren(spouse) {
+            if (spouse) {
+                return this.children.filter(child => spouse.isMyChild(child));
+            }
+            // return kids who doesn't have second parent
+            return this.children.filter(child => !this.spouses.some(spouse => spouse.isMyChild(child)));
+        }
+        /**
+         * Sets final node coordinations (override)
+         *
+         * This function must not be called before all children were drawn
+         *
+         * @param x - default x value (won't be used when more than 1 child)
+         * @param depth - "level" number starting from root
+         */
+        setCoords(x, depth) {
+            super.setCoords(x, depth);
+            if (this.spouses.length == 0) {
+                // print me in the middle of children
+                return;
+            }
+            const secondParent = this.getSecondParent();
+            if (this.children.length < 2) {
+                this.coords.x = x;
+            }
+            else {
+                this.coords.x = Math.floor((this.firstChild().coords.x + this.lastChild().coords.x) / 2);
+            }
+            this.coords.y = depth * (this.props.height + this.props.space.generation);
+        }
+        getLastSpouse() {
+            return this.spouses[this.spouses.length - 1];
+        }
+        getSecondParent() {
+            if (!this.parent) {
+                return null;
+            }
+            return this.parent.spouses.find(spouse => spouse.isMyChild(this));
+        }
+        maxContainerX() {
+            if (this.spouses.length > 0 && this.getLastSpouse().children.length < 2) {
+                // take spouse border
+                return this.getLastSpouse().maxContainerX();
+            }
+            return super.maxContainerX();
+        }
     }
     FamilyTreePrinter.PersonNode = PersonNode;
     class SpouseNode extends ExtendedNode {
+        constructor(data) {
+            super(data);
+        }
+        /**
+         * Logic comparing spouses for sorting
+         */
+        compareWith(b) {
+            // logic deciding which spouse is the current one (last one)
+            if (this.data.till) {
+                // compare relationship end dates if both existe
+                // if the other one doesn't exist it means it should be after current node
+                return b.data.till ? this.data.till.localeCompare(b.data.till) : -1;
+            }
+            // if current one doesn't have relationship end date but the other one does
+            // it means the other one should be before current node
+            if (b.data.till) {
+                return 1;
+            }
+            // dummy assumption that last entered partner is the current one
+            // the alternative would be to make them equal (0)
+            return this.id - b.id;
+        }
+        /**
+         * Checks if given child belongs to this spouse
+         * @param child - Child to test
+         */
+        isMyChild(child) {
+            return this.data.children.indexOf(child.id) != -1;
+        }
+        /**
+         * Checks if given person is current parter or ex
+         * @param person
+         */
+        isLastPartner(person) {
+            let spouses = person.getSpouses();
+            // current one should be the last on the list
+            return spouses[spouses.length - 1].id == this.id;
+        }
+        setCoords(x, depth) {
+            super.setCoords(x, depth);
+            if (this.isLastPartner(this.partner)) {
+                this.coords.x = this.partner.coords.x + this.props.width + this.props.space.sibling;
+            }
+            else {
+                // print on the left side of partner node
+            }
+        }
+        connectChildren(container) {
+            // TODO
+            // if not current parter then connect directly underneath
+        }
     }
     FamilyTreePrinter.SpouseNode = SpouseNode;
 })(FamilyTreePrinter || (FamilyTreePrinter = {}));
@@ -457,7 +584,9 @@ var FamilyTreePrinter;
                 // add children
                 spouseData.children && spouseData.children.forEach(childId => spouse.children.push(this.idToPersonMap[childId]));
                 // add spouse to person node
-                this.idToPersonMap[spouseData.partner].spouses.push(new FamilyTreePrinter.SpouseNode(spouseData));
+                this.idToPersonMap[spouseData.partner].spouses.push(spouse);
+                // add person to spouse node
+                spouse.partner = this.idToPersonMap[spouseData.partner];
             });
             return this;
         }
@@ -467,7 +596,11 @@ var FamilyTreePrinter;
                 idToNodeMap[nodeData.id] = new FamilyTreePrinter.PersonNode(nodeData);
                 // check if there were any children nodes initialized earlier
                 if (childrenToAddLater[nodeData.id]) {
-                    childrenToAddLater[nodeData.id].forEach(child => idToNodeMap[nodeData.id].children.push(child));
+                    childrenToAddLater[nodeData.id].forEach(child => {
+                        idToNodeMap[nodeData.id].children.push(child);
+                        // add parent to child
+                        child.parent = idToNodeMap[nodeData.id];
+                    });
                     delete childrenToAddLater[nodeData.id];
                 }
                 // if there is no parent it is the root node
@@ -479,6 +612,8 @@ var FamilyTreePrinter;
                     if (idToNodeMap[nodeData.parent]) {
                         // add child to the parent
                         idToNodeMap[nodeData.parent].children.push(idToNodeMap[nodeData.id]);
+                        // add parent to child
+                        idToNodeMap[nodeData.id].parent = idToNodeMap[nodeData.parent];
                     }
                     else {
                         // since parent was not initialized yet we store new node in helper collection and we will add it later

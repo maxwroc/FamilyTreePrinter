@@ -18,6 +18,7 @@ module FamilyTreePrinter {
         { id: 7, name: "G", sex: "f", parent: 4 },
         { id: 8, name: "H", sex: "f", parent: 2 },
         { id: 9, name: "I", sex: "f", parent: 2 },
+        { id: 10, name: "Ca", sex: "m", parent: 3 },
     ];
 
     let spouses: ISpouseData[] = [
@@ -25,6 +26,10 @@ module FamilyTreePrinter {
         { id: 2, name: "SA_1", sex: "f", partner: 1, since: "2010-09-20", children: [2, 3], till: "2015-05-18" }, // ex
         { id: 3, name: "SD_1", sex: "f", partner: 4, since: "2015-05-20", children: [5, 6, 7] }, // current
         { id: 4, name: "SB_1", sex: "m", partner: 2, since: "2015-05-20", children: [8, 9] } // current
+    ];
+
+    spouses = [
+        { id: 3, name: "SD_1", sex: "f", partner: 4, since: "2015-05-20", children: [5, 6, 7] }, // current
     ];
 
     window.addEventListener("load", () => {
