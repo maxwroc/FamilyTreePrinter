@@ -52,16 +52,12 @@ module FamilyTreePrinter.Canvas {
      *      ┍--|--┑      ┍--+--┑
      *      2  3  4      8     9
      */
-    function drawSubTree(node: Node, x: number, depth: number, container: d3.Selection<"g">) {
+    function drawSubTree(node: Node, x: number, depth: number, container: d3.Selection<"g">): number {
         for (const child of node.children) {
             x = drawSubTree(child, x, depth + 1, container);
-        }
+        };
 
-        node.setCoords(x, depth);
-
-        node.print(container);
-
-        return node.maxContainerX();
+        return node.print(container, x, depth);
     }
 
     export function drawTree(root: Node) {

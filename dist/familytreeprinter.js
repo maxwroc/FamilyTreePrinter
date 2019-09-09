@@ -99,9 +99,8 @@ var FamilyTreePrinter;
             for (const child of node.children) {
                 x = drawSubTree(child, x, depth + 1, container);
             }
-            node.setCoords(x, depth);
-            node.print(container);
-            return node.maxContainerX();
+            ;
+            return node.print(container, x, depth);
         }
         function drawTree(root) {
             drawSubTree(root, 80, // x - starting point od the tree
@@ -182,23 +181,6 @@ var FamilyTreePrinter;
             return this.children[this.children.length - 1];
         }
         /**
-         * Sets final node coordinations
-         *
-         * This function must not be called before all children were drawn
-         *
-         * @param x - default x value (won't be used when more than 1 child)
-         * @param depth - "level" number starting from root
-         */
-        setCoords(x, depth) {
-            if (this.children.length < 2) {
-                this.coords.x = x;
-            }
-            else {
-                this.coords.x = Math.floor((this.firstChild().coords.x + this.lastChild().coords.x) / 2);
-            }
-            this.coords.y = depth * (this.props.height + this.props.space.generation);
-        }
-        /**
          * Returns minimal x value where next node on the same level can be drawn
          */
         maxContainerX() {
@@ -216,8 +198,11 @@ var FamilyTreePrinter;
         /**
          * Draws node on given container
          * @param container - container where node should be drawn
+         * @param x - default x value (won't be used when more than 1 child)
+         * @param depth - "level" number starting from root
          */
-        print(container) {
+        print(container, x, depth) {
+            this.setCoords(x, depth);
             // since we want to render some elements in the node we create group to position them easier
             const boxGroup = container
                 .append("g")
@@ -241,6 +226,7 @@ var FamilyTreePrinter;
                 .text(this.data.name);
             // draw connection line with children - since all of them should be rendered at this point
             this.connectChildren(container);
+            return this.maxContainerX();
         }
         /**
          * Returns coordinates of center top point of the node
@@ -261,6 +247,23 @@ var FamilyTreePrinter;
                 y: this.coords.y + this.props.height,
                 isRelative: false
             };
+        }
+        /**
+         * Sets final node coordinations
+         *
+         * This function must not be called before all children were drawn
+         *
+         * @param x - default x value (won't be used when more than 1 child)
+         * @param depth - "level" number starting from root
+         */
+        setCoords(x, depth) {
+            if (this.children.length < 2) {
+                this.coords.x = x;
+            }
+            else {
+                this.coords.x = Math.floor((this.firstChild().coords.x + this.lastChild().coords.x) / 2);
+            }
+            this.coords.y = depth * (this.props.height + this.props.space.generation);
         }
         /**
          * Draws connection lines between current node and its children
