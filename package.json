@@ -5,7 +5,9 @@
   "main": "dist/familytreeprinter.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "watch": "tsc -w -p tsconfig.json"
+    "watch": "tsc -w -p tsconfig.json",
+    "predev": "node -e \"require('open')('test/testpage.html')\"",
+    "dev" : "tsc -w -p tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@types/d3": "^3.5.42",
     "@types/d3-selection-multi": "^1.0.7",
+    "open": "^6.4.0",
     "typescript": "^3.5.3"
   },
   "dependencies": {}
